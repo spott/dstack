@@ -388,17 +388,6 @@ def print_offers_table(
 ) -> None:
     pretty_req = requirements.pretty_format(resources_only=True)
     max_price = f"${requirements.max_price:g}" if requirements.max_price else "-"
-    max_duration = (
-        f"{profile.max_duration / 3600:g}h" if isinstance(profile.max_duration, int) else "-"
-    )
-
-    # TODO: improve retry policy
-    # retry_policy = profile.retry_policy
-    # retry_policy = (
-    #     (f"{retry_policy.limit / 3600:g}h" if retry_policy.limit else "yes")
-    #     if retry_policy.retry
-    #     else "no"
-    # )
 
     if requirements.spot is None:
         spot_policy = "auto"
@@ -417,7 +406,6 @@ def print_offers_table(
     props.add_row(th("Pool name"), pool_name)
     props.add_row(th("Min resources"), pretty_req)
     props.add_row(th("Max price"), max_price)
-    props.add_row(th("Max duration"), max_duration)
     props.add_row(th("Spot policy"), spot_policy)
     # props.add_row(th("Retry policy"), retry_policy)
 
@@ -433,8 +421,8 @@ def print_offers_table(
 
     print_offers = instance_offers[:offers_limit]
 
-    for i, offer in enumerate(print_offers, start=1):
-        r = offer.instance.resources
+    for index, offer in enumerate(print_offers, start=1):
+        resources = offer.instance.resources
 
         availability = ""
         if offer.availability in {
@@ -443,15 +431,15 @@ def print_offers_table(
         }:
             availability = offer.availability.value.replace("_", " ").title()
         offers_table.add_row(
-            f"{i}",
+            f"{index}",
             offer.backend,
             offer.region,
             offer.instance.name,
-            r.pretty_format(),
-            "yes" if r.spot else "no",
+            resources.pretty_format(),
+            "yes" if resources.spot else "no",
             f"${offer.price:g}",
             availability,
-            style=None if i == 1 else "secondary",
+            style=None if index == 1 else "secondary",
         )
     if len(print_offers) > offers_limit:
         offers_table.add_row("", "...", style="secondary")
