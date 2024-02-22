@@ -108,6 +108,12 @@ class PoolCommand(APIBaseCommand):
         add_parser = subparsers.add_parser(
             "add", help="Add instance to pool", formatter_class=self._parser.formatter_class
         )
+        self._parser.add_argument(
+            "--max-offers",
+            help="Number of offers to show in the run plan",
+            type=int,
+            default=3,
+        )
         add_parser.add_argument(
             "--pool",
             dest="pool_name",
@@ -296,7 +302,7 @@ class PoolCommand(APIBaseCommand):
 
         offers = [o for o in offers if o.instance_runtime == InstanceRuntime.SHIM]
 
-        print_offers_table(pool_name, profile, requirements, offers)
+        print_offers_table(pool_name, profile, requirements, offers, offers_limit=args.max_offers)
         if not args.yes and not confirm_ask("Continue?"):
             console.print("\nExiting...")
             return
@@ -376,7 +382,7 @@ def print_offers_table(
     profile: Profile,
     requirements: Requirements,
     instance_offers: Sequence[InstanceOfferWithAvailability],
-    offers_limit: int = 3,
+    offers_limit: int,
 ) -> None:
     pretty_req = requirements.pretty_format(resources_only=True)
     max_price = f"${requirements.max_price:g}" if requirements.max_price else "-"
