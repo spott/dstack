@@ -215,6 +215,8 @@ async def create_instance(
     if pool is None:
         pool = await create_pool_model(session, project, pool_name)
 
+    backends = {backend for backend, _ in offers}
+
     for backend, instance_offer in offers:
         # cannot create an instance in vastai/k8s. skip
         if instance_offer.instance_runtime == InstanceRuntime.RUNNER:
@@ -241,6 +243,11 @@ async def create_instance(
                 instance_offer.region,
                 repr(e),
             )
+            continue
+        except NotImplementedError:
+            # Current backend doesn't suppport create_instance
+            if len(backends) == 1:
+                raise
             continue
 
         job_provisioning_data = JobProvisioningData(

@@ -80,6 +80,7 @@ async def get_offers(
     )
 
     offers = await runs.get_run_plan_by_requirements(project, body.profile, body.requirements)
+
     instances = [instance for _, instance in offers]
 
     return GetOffersResponse(pool_name=active_pool.name, instances=instances)
@@ -95,18 +96,24 @@ async def create_instance(
     instance_name = await generate_instance_name(
         session=session, project=project, pool_name=body.pool_name
     )
-    instance = await runs.create_instance(
-        session=session,
-        project=project,
-        user=user,
-        ssh_key=body.ssh_key,
-        pool_name=body.pool_name,
-        instance_name=instance_name,
-        profile=body.profile,
-        requirements=body.requirements,
-    )
+
+    try:
+        instance = await runs.create_instance(
+            session=session,
+            project=project,
+            user=user,
+            ssh_key=body.ssh_key,
+            pool_name=body.pool_name,
+            instance_name=instance_name,
+            profile=body.profile,
+            requirements=body.requirements,
+        )
+    except NotImplementedError:
+        raise ServerClientError(msg="The provider doesn't support 'create_instance'")
+
     if instance is None:
         raise ServerClientError(msg="Failed to create an instance")
+
     return instance
 
 
