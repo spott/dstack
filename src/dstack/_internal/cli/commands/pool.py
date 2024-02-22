@@ -252,8 +252,10 @@ class PoolCommand(APIBaseCommand):
         )
 
         profile = load_profile(Path.cwd(), args.profile)
-        apply_profile_args(args, profile)
+        profile.spot_policy = SpotPolicy.ONDEMAND  # on-demand instances by default
         profile.pool_name = args.pool_name
+
+        apply_profile_args(args, profile)
 
         spot = None
         if profile.spot_policy == SpotPolicy.SPOT:
